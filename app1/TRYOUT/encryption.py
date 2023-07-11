@@ -1,11 +1,17 @@
 from cryptography.fernet import Fernet
 import os
+import sys
 import shutil
 
 
-def encrypt(key, data):
+def _encrypt(key, data):
     f = Fernet(key)
     return f.encrypt(data)
+
+
+def _decrypt(key, data):
+    f = Fernet(key)
+    return f.decrypt(data)
 
 
 def run_encryption(
@@ -45,7 +51,7 @@ def run_encryption(
             for item in dump:
                 item = bytes(item, 'utf-8')
                 # This is where the magic happens
-                encrypted_line = encrypt(my_key, item)
+                encrypted_line = _encrypt(my_key, item)
                 dict.append(encrypted_line)
         # create "codefile_#" and put all encoded lines from <dict> into said file
         with open(code_file(i + 1), 'w') as f:
@@ -62,8 +68,40 @@ def run_encryption(
     shutil.move(key_file, USBdir)
 
 
+def run_decryption(
+        decrypt_location='d:/',
+        key_file_name='keys.txt'
+):
+    keysrc = decrypt_location + key_file_name
+    decrypt_dict = []
+    for file in os.listdir(decrypt_location):
+        if file == 'System Volume Information':
+            continue
+        if file == key_file_name:
+            continue
+        decrypt_dict.append(decrypt_location + file)
+    keys = []
+    try:
+        with open(keysrc, 'r') as f:
+            for line in f.readlines():
+                keys.append(bytes(''.join(line.splitlines()), 'utf-8'))
+    except FileNotFoundError:
+        print('No decryption_key file', file=sys.stderr)
+
+    for num, file in enumerate(decrypt_dict):
+        with open(file, 'r') as f:
+            for line in f.readlines():
+                msg = bytes(line, 'utf-8')
+                text = _decrypt(keys[num], msg)
+                text = text.decode('utf-8')
+                text = ''.join(text.splitlines())
+                print(text)
+
+
 if __name__ == '__main__':
     run_encryption()
 
     file_lib = ['hae.txt', 'howudoin.txt', 'ohmy.txt', 'dontwanna.txt']
     run_encryption(file_lib=file_lib)
+
+    run_decryption()
