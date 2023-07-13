@@ -31,11 +31,11 @@ def run_encryption(file_destination='G:/', key_destination='E:/', src_files=None
         for file in os.listdir(src_dir):
             if '.txt' in file:
                 src_files.append(src_dir + file)
+                """Why the break here, wouldnt that only lead to 1 file getting encoded? -Justin"""
                 break
     amount = len(src_files)
 
     # remove all items from the <USBdir> (d:/)
-
     for item in os.listdir(file_destination):
         # DO NOT REMOVE SYSTEM VOLUME INFORMATION.
         # its special ;(
@@ -80,7 +80,7 @@ def run_encryption(file_destination='G:/', key_destination='E:/', src_files=None
         shutil.move(key, key_destination)
 
 
-def run_decryption(decrypt_location='d:/encoding/', key_location=None, key_file_name='keys.txt', keys=None):
+def run_decryption(decrypt_location='d:/encoding/', key_location='e:/', key_file_name='keys.txt', keys=None):
     if keys is None:
         keys = []
     key_src = key_location + key_file_name
@@ -99,6 +99,7 @@ def run_decryption(decrypt_location='d:/encoding/', key_location=None, key_file_
                 keys.append(bytes(''.join(line.splitlines()), 'utf-8'))
     except FileNotFoundError:
         print('No decryption_key file', file=sys.stderr)
+        return
 
     try:
         os.makedirs(dir)
@@ -120,5 +121,5 @@ def run_decryption(decrypt_location='d:/encoding/', key_location=None, key_file_
 
 
 if __name__ == '__main__':
-    run_encryption(src_dir=os.path.dirname(__file__)+'/trying_dir/', key_destination="E:/")
+    run_encryption(src_dir=os.path.dirname(__file__)+'/trying_dir/')
     run_decryption()
