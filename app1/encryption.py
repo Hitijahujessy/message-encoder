@@ -14,7 +14,7 @@ def _decrypt(key, data):
     return f.decrypt(data)
 
 
-def run_encryption(file_destination='D:/', key_destination='D:/',key_file='keys.txt', src_files=None, src_dir=None):
+def run_encryption(file_destination='G:/', key_destination='E:/',key_file='keys.txt', src_files=None, src_dir=None):
     # set up base src
     base_file = lambda a: f'file_{a}.txt'
     code_file = lambda a: f'codefile_{a}.txt'
@@ -31,6 +31,7 @@ def run_encryption(file_destination='D:/', key_destination='D:/',key_file='keys.
         for file in os.listdir(src_dir):
             if '.txt' in file:
                 src_files.append(src_dir + file)
+                break
     amount = len(src_files)
 
     # remove all items from the <USBdir> (d:/)
@@ -67,11 +68,16 @@ def run_encryption(file_destination='D:/', key_destination='D:/',key_file='keys.
         shutil.move(code_file(i + 1), file_destination)
 
     # Get the codes from the <keydict>, decode it into utf-8 and add it to the "keys.txt" file
-    with open(key_file, 'w') as f:
-        for key in key_dict:
-            f.write(key.decode('utf-8') + '\n')
-    # move "keys.txt" to <USBdir>
-    shutil.move(key_file, key_destination)
+    key_files = ["key1.txt", "key2.txt", "key3.txt"]
+    index = 0
+    for key in key_files:
+        with open(key, 'w') as f:
+            for index2, key2 in enumerate(key_dict):
+                if index2 == index:
+                    f.write(key2.decode('utf-8'))
+        index+=1
+        # move "keys.txt" to <USBdir>
+        shutil.move(key, key_destination)
 
 
 def run_decryption(decrypt_location='d:/encoding/', key_file_name='keys.txt', keys=None):
@@ -114,5 +120,5 @@ def run_decryption(decrypt_location='d:/encoding/', key_file_name='keys.txt', ke
 
 
 if __name__ == '__main__':
-    run_encryption(src_dir='trying_dir/', key_destination="E:/")
+    run_encryption(src_dir=os.path.dirname(__file__)+'/trying_dir/', key_destination="E:/")
     run_decryption()

@@ -42,7 +42,7 @@ class QRSCANNER():
             return
         img.save(root + name)
 
-    def get_USB_root(self, check_if_keys=False) -> str:
+    def get_USB_root(self, check_for_filter=False, filter1="key", filter2=".txt") -> str:
         """Scans for drives D: through Z:"""
         for drive in ascii_uppercase[:-24:-1]:
             file_path = f"{drive}:/"
@@ -52,13 +52,13 @@ class QRSCANNER():
                 has_keys = False
                 # Check to see if there is a file with 'key' in the name that is a '.txt' file
                 for file in onlyfiles:
-                    if "key" in file and ".txt" in file:
+                    if filter1 in file and filter2 in file:
                         has_keys = True
-                        if check_if_keys: # return the file path if you want the USB drive to contain a key
+                        if check_for_filter: # return the file path if you want the USB drive to contain a key
                             return file_path
                         break
                 # If you dont want keys and no keys were found, return the file path
-                if not has_keys and not check_if_keys:
+                if not has_keys and not check_for_filter:
                     return file_path
                 
         print('error, file not found')
@@ -68,13 +68,13 @@ class QRSCANNER():
     def read_USB(self, string_filter="key", extension_filter=".txt") -> list:
         """Returns a list of strings that are paths to a key file. \n
         ex: 'key.txt'"""
-        root = self.get_USB_root(check_if_keys=True)
+        root = self.get_USB_root(check_for_filter=True)
         # seperate files from directories
         onlyfiles = [f for f in os.listdir(root) if os.path.isfile(os.path.join(root, f))]
         # create a list containing files that have both filters in its name
         txtfiles = []
         for file in onlyfiles:
-            if extension_filter & string_filter in file:
+            if extension_filter in file and string_filter in file:
                 txtfiles.append(file)
         return txtfiles
     
