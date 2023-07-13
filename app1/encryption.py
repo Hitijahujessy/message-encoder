@@ -71,7 +71,11 @@ def run_encryption(file_destination='D:/', key_destination='D:/',key_file='keys.
         for key in key_dict:
             f.write(key.decode('utf-8') + '\n')
     # move "keys.txt" to <USBdir>
-    shutil.move(key_file, key_destination)
+    try:
+        shutil.move(key_file, key_destination)
+    except shutil.Error:
+        os.remove(key_destination + key_file)
+        shutil.move(key_file, key_destination)
 
 
 def run_decryption(decrypt_location='d:/encoding/', key_location=None, key_file_name='keys.txt', keys=None):
@@ -115,4 +119,4 @@ def run_decryption(decrypt_location='d:/encoding/', key_location=None, key_file_
 
 if __name__ == '__main__':
     run_encryption(src_dir='trying_dir/')
-    run_decryption()
+    run_decryption(key_location='d:/')
