@@ -114,5 +114,5 @@ def run_decryption(decrypt_location='d:/encoding/', key_file_name='keys.txt', ke
 
 
 if __name__ == '__main__':
-    run_encryption(src_dir='trying_dir/')
+    run_encryption(src_dir='trying_dir/', key_destination="E:/")
     run_decryption()
