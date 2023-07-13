@@ -15,10 +15,12 @@ class QRSCANNER():
         self.find_all_keys_and_convert()
         
     def find_all_keys_and_convert(self):
-        keys = self.read_USB()
-        if not keys:
+        """"""
+        # get a list of paths to the keys
+        key_paths = self.read_USB()
+        if not key_paths:
             print("no keys found")
-        for key in keys:
+        for key in key_paths:
             with open(self.get_USB_root(True)+key, encoding = "utf-8") as f:
                 data = f.read()
             letters = self.create_extra_code()
@@ -52,23 +54,27 @@ class QRSCANNER():
                 for file in onlyfiles:
                     if "key" in file and ".txt" in file:
                         has_keys = True
-                        if check_if_keys:
+                        if check_if_keys: # return the file path if you want the USB drive to contain a key
                             return file_path
-                if has_keys == False and check_if_keys == False:
+                        break
+                # If you dont want keys and no keys were found, return the file path
+                if not has_keys and not check_if_keys:
                     return file_path
                 
-
         print('error, file not found')
         return None
 
 
-    def read_USB(self) -> list:
-        """Returns the contents of the file as a string"""
-        root = self.get_USB_root(True)
+    def read_USB(self, string_filter="key", extension_filter=".txt") -> list:
+        """Returns a list of strings that are paths to a key file. \n
+        ex: 'key.txt'"""
+        root = self.get_USB_root(check_if_keys=True)
+        # seperate files from directories
         onlyfiles = [f for f in os.listdir(root) if os.path.isfile(os.path.join(root, f))]
+        # create a list containing files that have both filters in its name
         txtfiles = []
         for file in onlyfiles:
-            if ".txt" in file:
+            if extension_filter & string_filter in file:
                 txtfiles.append(file)
         return txtfiles
     
@@ -78,7 +84,9 @@ class QRSCANNER():
         return img
     
     def create_extra_code(self) -> str:
-        """Create a random string of 4 capital letters and save it to the dump folder"""
+        """Create a random string of 4 capital letters and underscore and save it to the dump folder. \n
+            ex. Return : "_GASK"
+        """
         letters = ""
         i = 0
         while i < 4:
@@ -89,6 +97,7 @@ class QRSCANNER():
     
     def save_extra_code(self, letters):
         root = os.path.dirname(__file__)
+        # Create a txt file and write the key and code to it
         try:
             f = open(root+f"/dump/{letters}.txt", 'x+', encoding="utf-8")
         except (FileExistsError):
