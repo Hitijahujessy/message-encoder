@@ -14,7 +14,7 @@ def _decrypt(key, data):
     return f.decrypt(data)
 
 
-def run_encryption(file_destination='G:/', key_destination='E:/',key_file='keys.txt', src_files=None, src_dir=None):
+def run_encryption(file_destination='G:/', key_destination='E:/', src_files=None, src_dir=None):
     # set up base src
     base_file = lambda a: f'file_{a}.txt'
     code_file = lambda a: f'codefile_{a}.txt'
