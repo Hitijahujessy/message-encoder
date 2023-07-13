@@ -74,10 +74,10 @@ def run_encryption(file_destination='D:/', key_destination='D:/',key_file='keys.
     shutil.move(key_file, key_destination)
 
 
-def run_decryption(decrypt_location='d:/encoding/', key_file_name='keys.txt', keys=None):
+def run_decryption(decrypt_location='d:/encoding/', key_location=None, key_file_name='keys.txt', keys=None):
     if keys is None:
         keys = []
-    key_src = decrypt_location + key_file_name
+    key_src = key_location + key_file_name
     decrypted_name = lambda a: f'decrypted_file_{a}'
     dir = 'files/'
     decrypt_dict = []
