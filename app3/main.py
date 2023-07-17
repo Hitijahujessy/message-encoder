@@ -76,8 +76,7 @@ class Main():
             # print(self.file_name)
             
         def get_decrypted_text():
-            
-            self.decrypted_text = decryption.run()
+            self.decrypted_text = decryption.run(self.file_name)
             self.label_right.config(text=self.decrypted_text)
 
     def get_dir(self):

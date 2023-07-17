@@ -1,19 +1,18 @@
 import os
 import random
 from string import ascii_uppercase
-import sys
 import cv2
 import numpy as np
 from cryptography.fernet import Fernet, InvalidToken
 from pyzbar.pyzbar import decode
 
 
-def run(keep_running=True):
+def run(file_name, keep_running=True):
     cap = cv2.VideoCapture(0)
     data = None
     while keep_running:
         ret, frame = cap.read()
-        keep_running, data = decoder(frame)
+        keep_running, data = decoder(frame, file_name)
         cv2.imshow('Image', frame)
         code = cv2.waitKey(10)
         if code == ord('q'):
@@ -22,20 +21,18 @@ def run(keep_running=True):
     return data
 
 
-def decoder(image) -> bool:
+def decoder(image, file_name) -> bool:
     data, bartype, pos = QRSCAN(image)
-
-    
 
     if data is "":
         # draws a string on the capture frame displaying the contents
-        cv2.putText(image, bartype, (0,25),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+        cv2.putText(image, bartype, (0, 25),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
         return True, None
     elif data[-6] != "=" or len(data) != 49:
         bartype = "Invalid QR code"
         cv2.putText(image, bartype, pos,
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
         return True, None
 
     # Seperate the key and code from the qr data
@@ -49,7 +46,6 @@ def decoder(image) -> bool:
 
     try:
         # set the name for the code to decrypt here
-        file_name = "codefile_1.txt"
         decrypted_text = try_decryption(get_USB_root(
             folter="encoding/") + file_name, str(key))
         if decrypted_text:
@@ -72,11 +68,11 @@ def QRSCAN(img):
         pts = pts.reshape((-1, 1, 2))
         key = obj.data.decode("utf-8")
 
-        if len(key) == 44: 
+        if len(key) == 49:
             cv2.polylines(img, [pts], True, (0, 255, 0), 3)
         else:
             cv2.polylines(img, [pts], True, (0, 0, 255), 3)
-        
+
         barcodeType = obj.type
         return key, str(barcodeType), pos
     return "", "No QR code found", ""
@@ -147,5 +143,5 @@ def get_USB_root(check_for_no_filter=False, filter1="key", filter2=".txt", folte
 
 
 if __name__ == '__main__':
-    #pass
+    # pass
     run()

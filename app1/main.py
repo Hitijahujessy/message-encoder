@@ -1,7 +1,6 @@
 import tkinter as tk
 import os
 import shutil
-import sys
 
 from cryptography.fernet import Fernet
 
@@ -9,7 +8,7 @@ def _encrypt(key, data):
     f = Fernet(key)
     return f.encrypt(data)
 
-def run_encryption(file_destination='G:/', key_destination='E:/', src_files=None, src_dir=None):
+def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None, src_dir=None):
     # set up base src
     def base_file(a): return f'file_{a}.txt'
     def code_file(a): return f'codefile_{a}.txt'
