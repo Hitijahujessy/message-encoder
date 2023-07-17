@@ -21,7 +21,7 @@ class QRSCANNER():
         if not key_paths:
             print("no keys found")
         for key in key_paths:
-            with open(self.get_USB_root(True)+key, encoding = "utf-8") as f:
+            with open(self.get_USB_root(True) + key, encoding = "utf-8") as f:
                 data = f.read()
             letters = self.create_extra_code()
             img = self.create_QR(data+letters)

@@ -32,7 +32,6 @@ def run_encryption(file_destination='G:/', key_destination='E:/', src_files=None
             if '.txt' in file:
                 src_files.append(src_dir + file)
                 """Why the break here, wouldnt that only lead to 1 file getting encoded? -Justin"""
-                break
     amount = len(src_files)
 
     # remove all items from the <USBdir> (d:/)

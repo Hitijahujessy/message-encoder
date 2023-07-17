@@ -1,11 +1,11 @@
 import os
 import shutil
 import sys
-
+import random
 import cv2
 import numpy as np
 import qrcode
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from pyzbar.pyzbar import decode
 from string import ascii_uppercase
 
@@ -29,9 +29,15 @@ def decoder(image):
         cv2.putText(frame, string, (x, y),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
         print("Barcode: "+barcodeData + " | Type: "+barcodeType)
-        try:
+        """try:
             run_decryption(keys=[barcodeData])
         except FileNotFoundError as e:
+            print(e)"""
+        
+        try:
+            decrypted_text = try_decryption(get_USB_root(folter="encoding"), barcodeData)
+            create_decrypted_file(text=decrypted_text)
+        except Exception as e:
             print(e)
 
 
@@ -48,14 +54,18 @@ def scan_qr():
 
 def _decrypt(key, data):
     f = Fernet(key)
-    return f.decrypt(data)
+    try:
+        return f.decrypt(data)
+    except InvalidToken:
+        return None
+        
 
 
 def run_decryption(decrypt_location='E:/encoding/', key_file_name='keys.txt', keys=None):
     if keys is None:
         keys = []
-    decrypt_location = get_USB_root(True, filter1="file")
-    decrypt_location += "/encoding/"
+    decrypt_location = get_USB_root(True, filter1="file", folter="/encoding/")
+    # decrypt_location += "/encoding/"
     key_src = get_USB_root(True) + "/" + key_file_name
 
     def decrypted_name(a): return f'decrypted_file_{a}'
@@ -85,18 +95,40 @@ def run_decryption(decrypt_location='E:/encoding/', key_file_name='keys.txt', ke
             for line in f.readlines():
                 msg = bytes(line, 'utf-8')
                 text = _decrypt(keys[num][:-5], msg)
+                if (text is None):
+                    break
                 text = text.decode('utf-8')
                 text = ''.join(text.splitlines())
                 dict.append(text)
+            if (text is None):
+                    break
         with open(dir + decrypted_name(num + 1), 'w') as f:
             for line in dict:
                 f.write(line + '\n')
 
+def try_decryption(encr_file_path: str, key: str) -> str | None:
+    with open(encr_file_path, 'r', encoding="utf-8") as f:
+        msg = bytes(f.read(), 'utf-8')
+        text = _decrypt(key, msg)
+        if (text is None):
+            return None
+        text = text.decode('utf-8')
+        text = ''.join(text.splitlines())
+        return text
+    
+def create_decrypted_file(decr_file_path = os.path.dirname(__file__)+"/decrypts", text = ""):
+    try:
+        file_name = "decrypted_file_" + text[:4]
+    except IndexError:
+        file_name = "decrypted_file_" + str(random.randint(100, 999))
+    with open(decr_file_path+file_name, 'w+', encoding="utf-8") as f:
+        f.write(text)
 
-def get_USB_root(check_for_no_filter=False, filter1="key", filter2=".txt") -> str:
+
+def get_USB_root(check_for_no_filter=False, filter1="key", filter2=".txt", folter="") -> str:
     """Scans for drives D: through Z:"""
     for drive in ascii_uppercase[:-24:-1]:
-        file_path = f"{drive}:/"
+        file_path = f"{drive}:/" + folter
         if os.path.exists(file_path):
             # create a list of files in the drive directory
             onlyfiles = [f for f in os.listdir(
