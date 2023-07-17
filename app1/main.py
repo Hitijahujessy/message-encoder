@@ -88,19 +88,25 @@ Labels = [
 
 
 def save_text():
-    text_file_1 = open("start_files/text_1.txt", "w")
+    dir_name = 'start_files/'
+    try:
+        os.makedirs(dir_name)
+    except FileExistsError:
+        pass
+    
+    text_file_1 = open(dir_name+ "text_1.txt", "w")
     text_file_1.write(text_1.get(1.0, tk.END))
     text_file_1.close()
 
-    text_file_2 = open("start_files/text_2.txt", "w")
+    text_file_2 = open(dir_name+ "text_2.txt", "w")
     text_file_2.write(text_2.get(1.0, tk.END))
     text_file_2.close()
 
-    text_file_3 = open("start_files/text_3.txt", "w")
+    text_file_3 = open(dir_name+ "text_3.txt", "w")
     text_file_3.write(text_3.get(1.0, tk.END))
     text_file_3.close()
 
-    run_encryption(src_dir='files/')
+    run_encryption(src_dir=dir_name)
 
 for count, text in enumerate(Labels):
 
