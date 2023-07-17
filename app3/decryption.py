@@ -24,13 +24,24 @@ def run(keep_running=True):
 
 def decoder(image) -> bool:
     data, bartype, pos = QRSCAN(image)
-    if data is None or data[-6] != "=":
+
+    
+
+    if data is "":
+        # draws a string on the capture frame displaying the contents
+        cv2.putText(image, bartype, (0,25),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
         return True, None
+    elif data[-6] != "=" or len(data) != 49:
+        bartype = "Invalid QR code"
+        cv2.putText(image, bartype, pos,
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+        return True, None
+
     # Seperate the key and code from the qr data
     key = data[:-5]
     extra_code = data[-4:]
 
-    # draws a string on the capture frame displaying the contents
     string = "Key: " + key + " | Code: " + extra_code + " | Type: " + bartype
     cv2.putText(image, string, pos,
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
@@ -59,12 +70,16 @@ def QRSCAN(img):
         pos = (x, y)
         pts = np.array(points, np.int32)
         pts = pts.reshape((-1, 1, 2))
-        cv2.polylines(img, [pts], True, (0, 255, 0), 3)
-
         key = obj.data.decode("utf-8")
+
+        if len(key) == 44: 
+            cv2.polylines(img, [pts], True, (0, 255, 0), 3)
+        else:
+            cv2.polylines(img, [pts], True, (0, 0, 255), 3)
+        
         barcodeType = obj.type
         return key, str(barcodeType), pos
-    return None, None, None
+    return "", "No QR code found", ""
 
 
 def _decrypt(key, data):
@@ -132,5 +147,5 @@ def get_USB_root(check_for_no_filter=False, filter1="key", filter2=".txt", folte
 
 
 if __name__ == '__main__':
-    pass
-    #run()
+    #pass
+    run()
