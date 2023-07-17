@@ -10,7 +10,7 @@ class Main():
 
     def __init__(self) -> None:
         self.window = tk.Tk()
-        self.window.title("Data Decrypter")
+        self.window.title("Data Decryptor")
 
         
         
@@ -33,7 +33,7 @@ class Main():
         self.frame_right.grid(column=3, row=1)
         
         # Create the button for QR
-        self.qr_button = tk.Button(self.outer_frame, text="Scan QR", width=10, command=self._scan_qr)
+        self.qr_button = tk.Button(self.outer_frame, text="Scan QR", width=10, command=lambda: [select_file(), print("filename:", self.file_name), self._scan_qr])
         self.qr_button.grid(column=2, row=1, padx=10)
         self.decrypt_button = tk.Button(self.outer_frame, text="Decrypt", width=10, command=self._decrypt)
         
@@ -69,10 +69,10 @@ class Main():
             #l1.config(text=path) # update the text of Label with directory path
             root = next(os.walk(path))[0] # path 
             dirnames = next(os.walk(path))[1] # list of directories 
-            files = next(os.walk(path))[2] # list of files 
-            print(root) # D:\my_dir\my_dir0
-            print(dirnames) # ['my_dir1']
-            print(files) # ['my_file0.txt']
+            # files = next(os.walk(path))[2] # list of files 
+            # print(root) # D:\my_dir\my_dir0
+            # print(dirnames) # ['my_dir1']
+            # print(files) # ['my_file0.txt']
 
             for item in trv.get_children():
                 trv.delete(item)
@@ -92,6 +92,12 @@ class Main():
             for f in files:  # list of files 
                 trv.insert("", 'end',iid=i,values =f)
                 i = i + 1
+
+        def select_file():
+            self.selected_file = trv.focus()
+            self.file_details = trv.item(self.selected_file)
+            self.file_name = self.file_details.get("values")[0]
+            # print(self.file_name)
     
     def run(self):
         self.window.mainloop()
