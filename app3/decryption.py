@@ -35,6 +35,21 @@ def decoder(image):
             print(e)
 
 
+def QRSCAN(img):
+    grey_img = cv2.cvtColor(img, 0)
+    barcode = decode(grey_img)
+
+    for obj in barcode:
+        points = obj.polygon
+        (x, y, w, h) = obj.rect
+        pts = np.array(points, np.int32)
+        pts = pts.reshape((-1, 1, 2))
+        cv2.polylines(img, [pts], True, (0, 255, 0), 3)
+
+        key = obj.data.decode("utf-8")
+        barcodeType = obj.type
+    return key
+
 def scan_qr():
     cap = cv2.VideoCapture(0)
     while True:
