@@ -1,143 +1,107 @@
 import os
-import shutil
-import sys
 import random
-import cv2
-import numpy as np
-import qrcode
-from cryptography.fernet import Fernet, InvalidToken
-from pyzbar.pyzbar import decode
 from string import ascii_uppercase
 
-
-# Decode QR
-def decoder(image):
-    gray_img = cv2.cvtColor(image, 0)
-    barcode = decode(gray_img)
-
-    for obj in barcode:
-        points = obj.polygon
-        (x, y, w, h) = obj.rect
-        pts = np.array(points, np.int32)
-        pts = pts.reshape((-1, 1, 2))
-        cv2.polylines(image, [pts], True, (0, 255, 0), 3)
-
-        barcodeData = obj.data.decode("utf-8")
-        barcodeType = obj.type
-        string = "Data: " + str(barcodeData) + " | Type: " + str(barcodeType)
-
-        cv2.putText(frame, string, (x, y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-        print("Barcode: "+barcodeData + " | Type: "+barcodeType)
-        """try:
-            run_decryption(keys=[barcodeData])
-        except FileNotFoundError as e:
-            print(e)"""
-        
-        try:
-            decrypted_text = try_decryption(get_USB_root(folter="encoding"), barcodeData)
-            create_decrypted_file(text=decrypted_text)
-        except Exception as e:
-            print(e)
+import cv2
+import numpy as np
+from cryptography.fernet import Fernet, InvalidToken
+from pyzbar.pyzbar import decode
 
 
-def QRSCAN(img):
-    grey_img = cv2.cvtColor(img, 0)
-    barcode = decode(grey_img)
-
-    for obj in barcode:
-        points = obj.polygon
-        (x, y, w, h) = obj.rect
-        pts = np.array(points, np.int32)
-        pts = pts.reshape((-1, 1, 2))
-        cv2.polylines(img, [pts], True, (0, 255, 0), 3)
-
-        key = obj.data.decode("utf-8")
-        barcodeType = obj.type
-    return key
-
-def scan_qr():
+def run(keep_running=True):
     cap = cv2.VideoCapture(0)
-    while True:
+    while keep_running:
         ret, frame = cap.read()
-        decoder(frame)
+        keep_running = decoder(frame)
         cv2.imshow('Image', frame)
         code = cv2.waitKey(10)
         if code == ord('q'):
             break
 
 
+def decoder(image) -> bool:
+    data, bartype, pos = QRSCAN(image)
+    if (data is None):
+        return True
+    # Seperate the key and code from the qr data
+    key = data[:-5]
+    extra_code = data[-4:]
+
+    # draws a string on the capture frame displaying the contents
+    string = "Key: " + key + " | Code: " + extra_code + " | Type: " + bartype
+    cv2.putText(image, string, pos,
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+    print(string)
+
+    try:
+        # set the name for the code to decrypt here
+        file_name = "codefile_1.txt"
+        decrypted_text = try_decryption(get_USB_root(
+            folter="encoding/") + file_name, str(key))
+        if decrypted_text:
+            create_decrypted_file(text=decrypted_text)
+            # Stop running the capture frame when the file has been decrypted
+            return False
+    except FileExistsError as error:
+        print(error)
+    return True
+
+
+def QRSCAN(img):
+    grey_img = cv2.cvtColor(img, 0)
+    barcode = decode(grey_img)
+    for obj in barcode:
+        points = obj.polygon
+        (x, y, w, h) = obj.rect
+        pos = (x, y)
+        pts = np.array(points, np.int32)
+        pts = pts.reshape((-1, 1, 2))
+        cv2.polylines(img, [pts], True, (0, 255, 0), 3)
+
+        key = obj.data.decode("utf-8")
+        barcodeType = obj.type
+        return key, str(barcodeType), pos
+    return None, None, None
+
+
 def _decrypt(key, data):
     f = Fernet(key)
     try:
-        return f.decrypt(data)
+        value = f.decrypt(data)
+        return value
     except InvalidToken:
         return None
-        
 
 
-def run_decryption(decrypt_location='E:/encoding/', key_file_name='keys.txt', keys=None):
-    if keys is None:
-        keys = []
-    decrypt_location = get_USB_root(True, filter1="file", folter="/encoding/")
-    # decrypt_location += "/encoding/"
-    key_src = get_USB_root(True) + "/" + key_file_name
-
-    def decrypted_name(a): return f'decrypted_file_{a}'
-    dir = 'files/'
-    decrypt_dict = []
-    for file in os.listdir(decrypt_location):
-        if file == 'System Volume Information':
-            continue
-        if file == key_file_name:
-            continue
-        decrypt_dict.append(decrypt_location + file)
-    try:
-        with open(key_src, 'r') as f:
-            for line in f.readlines():
-                keys.append(bytes(''.join(line.splitlines()), 'utf-8'))
-    except FileNotFoundError:
-        print('No decryption_key file', file=sys.stderr)
-
-    try:
-        os.makedirs(dir)
-    except FileExistsError:
-        pass
-
-    for num, file in enumerate(decrypt_dict):
-        dict = []
-        with open(file, 'r') as f:
-            for line in f.readlines():
-                msg = bytes(line, 'utf-8')
-                text = _decrypt(keys[num][:-5], msg)
-                if (text is None):
-                    break
-                text = text.decode('utf-8')
-                text = ''.join(text.splitlines())
-                dict.append(text)
-            if (text is None):
-                    break
-        with open(dir + decrypted_name(num + 1), 'w') as f:
-            for line in dict:
-                f.write(line + '\n')
-
-def try_decryption(encr_file_path: str, key: str) -> str | None:
+def try_decryption(encr_file_path: str, key: str) -> list | None:
+    return_list = []
     with open(encr_file_path, 'r', encoding="utf-8") as f:
-        msg = bytes(f.read(), 'utf-8')
-        text = _decrypt(key, msg)
-        if (text is None):
-            return None
-        text = text.decode('utf-8')
-        text = ''.join(text.splitlines())
-        return text
-    
-def create_decrypted_file(decr_file_path = os.path.dirname(__file__)+"/decrypts", text = ""):
+        for line in f.readlines():
+            msg = bytes(line, 'utf-8')
+            text = _decrypt(key, msg)
+            if (text is None):
+                return None
+            text = text.decode('utf-8')
+            text = ''.join(text.splitlines())
+            return_list.append(text)
+    return return_list
+
+
+def create_decrypted_file(decr_file_path=os.path.dirname(__file__)+"/decrypts/", text=[""]):
     try:
-        file_name = "decrypted_file_" + text[:4]
+        file_name = "decrypted_file_" + text[0][:4]
     except IndexError:
         file_name = "decrypted_file_" + str(random.randint(100, 999))
-    with open(decr_file_path+file_name, 'w+', encoding="utf-8") as f:
-        f.write(text)
+    create_decrypts_folder()
+    with open(decr_file_path+file_name+".txt", 'w', encoding="utf-8") as f:
+        for line in text:
+            f.write(line + "\n")
+
+
+def create_decrypts_folder():
+    """Create a dump folder if it doesnt exist yet"""
+    if not "decrypts" in os.listdir(os.path.dirname(__file__)):
+        os.makedirs(os.path.dirname(__file__) + "/decrypts")
 
 
 def get_USB_root(check_for_no_filter=False, filter1="key", filter2=".txt", folter="") -> str:
@@ -165,15 +129,4 @@ def get_USB_root(check_for_no_filter=False, filter1="key", filter2=".txt", folte
 
 
 if __name__ == '__main__':
-    # scan_qr()
-    # run_decryption()
-
-    # Scan QR
-    cap = cv2.VideoCapture(0)
-    while True:
-        ret, frame = cap.read()
-        decoder(frame)
-        cv2.imshow('Image', frame)
-        code = cv2.waitKey(10)
-        if code == ord('q'):
-            break
+    run()
