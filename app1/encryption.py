@@ -1,7 +1,8 @@
-from cryptography.fernet import Fernet
 import os
-import sys
 import shutil
+import sys
+
+from cryptography.fernet import Fernet
 
 
 def _encrypt(key, data):
@@ -16,8 +17,8 @@ def _decrypt(key, data):
 
 def run_encryption(file_destination='G:/', key_destination='E:/', src_files=None, src_dir=None):
     # set up base src
-    base_file = lambda a: f'file_{a}.txt'
-    code_file = lambda a: f'codefile_{a}.txt'
+    def base_file(a): return f'file_{a}.txt'
+    def code_file(a): return f'codefile_{a}.txt'
     dir_name = '/encoding/'
     try:
         os.makedirs(file_destination + dir_name)
@@ -40,7 +41,7 @@ def run_encryption(file_destination='G:/', key_destination='E:/', src_files=None
         # its special ;(
         if item == 'System Volume Information':
             continue
-        os.remove(file_destination+ item)
+        os.remove(file_destination + item)
 
     # continue 3 times (main goal)
     for i in range(amount):
@@ -74,7 +75,7 @@ def run_encryption(file_destination='G:/', key_destination='E:/', src_files=None
             for index2, key2 in enumerate(key_dict):
                 if index2 == index:
                     f.write(key2.decode('utf-8'))
-        index+=1
+        index += 1
         # move "keys.txt" to <USBdir>
         shutil.move(key, key_destination)
 
@@ -83,7 +84,7 @@ def run_decryption(decrypt_location='d:/encoding/', key_location='e:/', key_file
     if keys is None:
         keys = []
     key_src = key_location + key_file_name
-    decrypted_name = lambda a: f'decrypted_file_{a}'
+    def decrypted_name(a): return f'decrypted_file_{a}'
     dir = 'files/'
     decrypt_dict = []
     for file in os.listdir(decrypt_location):

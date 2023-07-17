@@ -1,7 +1,7 @@
 import os
 import random
 from string import ascii_uppercase
-
+import sys
 import cv2
 import numpy as np
 from cryptography.fernet import Fernet, InvalidToken
@@ -10,19 +10,22 @@ from pyzbar.pyzbar import decode
 
 def run(keep_running=True):
     cap = cv2.VideoCapture(0)
+    data = None
     while keep_running:
         ret, frame = cap.read()
-        keep_running = decoder(frame)
+        keep_running, data = decoder(frame)
         cv2.imshow('Image', frame)
         code = cv2.waitKey(10)
         if code == ord('q'):
             break
+    cv2.destroyAllWindows()
+    return data
 
 
 def decoder(image) -> bool:
     data, bartype, pos = QRSCAN(image)
     if (data is None):
-        return True
+        return True, None
     # Seperate the key and code from the qr data
     key = data[:-5]
     extra_code = data[-4:]
@@ -41,10 +44,10 @@ def decoder(image) -> bool:
         if decrypted_text:
             create_decrypted_file(text=decrypted_text)
             # Stop running the capture frame when the file has been decrypted
-            return False
+            return False, decrypted_text
     except FileExistsError as error:
         print(error)
-    return True
+    return True, None
 
 
 def QRSCAN(img):
@@ -129,4 +132,5 @@ def get_USB_root(check_for_no_filter=False, filter1="key", filter2=".txt", folte
 
 
 if __name__ == '__main__':
-    run()
+    pass
+    #run()
