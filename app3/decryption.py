@@ -24,7 +24,7 @@ def run(keep_running=True):
 
 def decoder(image) -> bool:
     data, bartype, pos = QRSCAN(image)
-    if (data is None):
+    if data is None or data[-6] != "=":
         return True, None
     # Seperate the key and code from the qr data
     key = data[:-5]

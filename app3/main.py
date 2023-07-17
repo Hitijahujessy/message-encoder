@@ -3,13 +3,17 @@ from tkinter import filedialog
 from tkinter import ttk
 
 import decryption
-
 import os
 
 
 class Main():
 
-    dir = decryption.get_USB_root(folter="/encoding/")  # String to hold directory path, should lead to encoded-fileS USB
+    if decryption.get_USB_root():
+        dir = decryption.get_USB_root(folter="/encoding/")  # String to hold directory path, should lead to encoded-fileS USB
+    else:
+        print("No external drive found")
+        exit()
+    
 
     def __init__(self) -> None:
         self.window = tk.Tk()
@@ -72,6 +76,7 @@ class Main():
             # print(self.file_name)
             
         def get_decrypted_text():
+            
             self.decrypted_text = decryption.run()
             self.label_right.config(text=self.decrypted_text)
 
