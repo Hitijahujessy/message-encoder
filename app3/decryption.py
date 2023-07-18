@@ -112,7 +112,9 @@ def create_decrypted_file(decr_file_path=os.path.dirname(__file__)+"/decrypts/",
             f.write(line + "\n")
 
 def create_decrypted_file_with_original_title(decr_file_path=os.path.dirname(__file__) + "/decrypts/", text=[""]):
+    # first line is always the previous path, split it and take the very last
     filename_sep = text[0].split('/')
+    # remove .txt from the name
     file_name = filename_sep[-1][:-4]
     create_decrypts_folder()
     with open(decr_file_path + file_name + ".txt", 'w', encoding="utf-8") as f:

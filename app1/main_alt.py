@@ -17,16 +17,17 @@ def _get_USB_root():
     for drive in ascii_uppercase[:-24:-1]:
         file_path = f"{drive}:/"
         if os.path.exists(file_path):
-            # create a list of files in the drive directory
+            # designate a file_usb
             if not _file_trigger:
                 for file in os.listdir(file_path):
+                    # see how many previous tries are already on the usb
                     if 'encoding' in file:
                         dirname_addon +=1
                 file_destination = file_path
                 _file_trigger = True
                 continue
 
-            # Check to see if there is a file with 'key' in the name that is a '.txt' file
+            # designate a key_usb
             if not _key_trigger:
                 key_destination = file_path
                 _key_trigger = True
@@ -51,13 +52,20 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
     def key_file(a, b):
         return f'key_file_{a}{b}.txt'
 
+    # setup link between aplhabet and numbers, for naming purposes
     charstr = 'abcdefghijklmnopqrstuvwqyxABCDEFGHIJKLMNOPQRSTUVWXYZ'
     char_list = list(charstr)
-    dir_name = f'/encoding{str(dirname)}/'
-    try:
-        os.makedirs(file_destination + dir_name)
-    except FileExistsError:
-        pass
+    dir_name = 'encoding_0/'
+    a = 0
+    while True:
+        a += 1
+        try:
+            dir_name = f'encoding_{a}/'
+            os.makedirs(dir_name)
+            break
+        except FileExistsError:
+            pass
+    
 
     file_destination += dir_name
     if src_files is None:
@@ -68,14 +76,6 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
             if '.txt' in file:
                 src_files.append(src_dir + file)
     amount = len(src_files)
-
-    # remove all items from the <USBdir> (d:/)
-    for item in os.listdir(file_destination):
-        # DO NOT REMOVE SYSTEM VOLUME INFORMATION.
-        # its special ;(
-        if item == 'System Volume Information':
-            continue
-        os.remove(file_destination + item)
 
     # continue 3 times (main goal)
     for i in range(amount):
@@ -112,10 +112,12 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
 
 
 def save_text():
-    a = 0
+    # If all text fields are empty, return
     if all(texts[num].get(1.0, tk.END).strip() == '' for num in range(len(name))):
         return
 
+    # constantly try to make a new dir, until u dont get one that doesnt exist yet
+    a = 0
     while True:
         a += 1
         try:
@@ -125,14 +127,18 @@ def save_text():
         except FileExistsError:
             pass
 
+    
     for num in range(len(name)):
+        # as long as file isnt empty, create new file with as title name[num].input
         if not texts[num].get(1.0, tk.END).strip() == '':
             file = open(dir_name + name[num].get() + ".txt", "w")
             file.write(texts[num].get(1.0, tk.END))
             file.close()
-        else:
-            print('empty')
+
+    # retrieve USB roots, destinations and how many previous tries have been done
     file_destination, key_destination, dirname = _get_USB_root()
+
+    # run encrypt
     run_encryption(src_dir=dir_name, key_destination=key_destination, file_destination=file_destination,
                    dirname=dirname)
 
