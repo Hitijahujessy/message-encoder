@@ -111,6 +111,13 @@ def create_decrypted_file(decr_file_path=os.path.dirname(__file__)+"/decrypts/",
         for line in text:
             f.write(line + "\n")
 
+def create_decrypted_file_with_original_title(decr_file_path=os.path.dirname(__file__) + "/decrypts/", text=[""]):
+    filename_sep = text[0].split('/')
+    file_name = filename_sep[-1][:-4]
+    create_decrypts_folder()
+    with open(decr_file_path + file_name + ".txt", 'w', encoding="utf-8") as f:
+        for line in text[1:]:
+            f.write(line + "\n")
 
 def create_decrypts_folder():
     """Create a dump folder if it doesnt exist yet"""

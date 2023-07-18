@@ -9,25 +9,28 @@ from cryptography.fernet import Fernet
 def _get_USB_root():
     file_destination = None
     key_destination = None
+    _file_trigger = False
+    _key_trigger = False
     dirname_addon = 1
+
     """Scans for drives D: through Z:"""
     for drive in ascii_uppercase[:-24:-1]:
         file_path = f"{drive}:/"
         if os.path.exists(file_path):
             # create a list of files in the drive directory
-            onlyfiles = [*os.listdir(file_path)]
-            # Check to see if there is a file with 'key' in the name that is a '.txt' file
-            if not any('encoding' in file for file in onlyfiles):
-                key_destination = file_path
+            if not _file_trigger:
+                for file in os.listdir(file_path):
+                    if 'encoding' in file:
+                        dirname_addon +=1
+                file_destination = file_path
+                _file_trigger = True
                 continue
-            for file in onlyfiles:
-                if 'encoding' in file:
-                    dirname_addon += 1
-            file_destination = file_path
-    if not file_destination:
-        file_destination = key_destination
-    if not key_destination:
-        key_destination = file_destination
+
+            # Check to see if there is a file with 'key' in the name that is a '.txt' file
+            if not _key_trigger:
+                key_destination = file_path
+                _key_trigger = True
+                continue
     return file_destination, key_destination, dirname_addon
 
 
@@ -110,6 +113,9 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
 
 def save_text():
     a = 0
+    if all(texts[num].get(1.0, tk.END).strip() == '' for num in range(len(name))):
+        return
+
     while True:
         a += 1
         try:
@@ -142,13 +148,9 @@ if __name__ == '__main__':
     name = []
     texts = []
 
-    Labels = [
-        "text 1",
-        "text 2",
-        "text 3",
-    ]
+    text_amount = 3
 
-    for count, text in enumerate(Labels):
+    for count in range(text_amount):
         label = tk.Entry(master=frm_form, )
         label.grid(row=count, column=0, sticky="e")
         name.append(label)
