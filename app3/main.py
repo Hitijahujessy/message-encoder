@@ -51,9 +51,11 @@ class Main():
         # Create the labels inside the textboxes
         # self.label_left = tk.Label(self.frame_left, width=50, height=20)
         # self.label_left.pack()
+        self.label_extracode =  tk.Label(self.frame_right, width=50, height=20, text="test", wraplength=300, justify='left')
+        self.label_extracode.pack()
         self.label_right = tk.Label(self.frame_right, width=50, height=20, text=self.decrypted_text, wraplength=300, justify='left')
         self.label_right.pack()
-
+        
         # TreeView
 
         # Shows selected directory, might be of use when debugging/testing
@@ -78,6 +80,7 @@ class Main():
         def get_decrypted_text():
             self.decrypted_text = decryption.run(self.file_name)
             self.label_right.config(text=self.decrypted_text)
+            self.label_extracode.config(text="test")
 
     def get_dir(self):
 
