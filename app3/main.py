@@ -78,9 +78,9 @@ class Main():
             # print(self.file_name)
             
         def get_decrypted_text():
-            self.decrypted_text = decryption.run(self.file_name)
+            self.decrypted_text, self.extra_code = decryption.run(self.file_name)
             self.label_right.config(text=self.decrypted_text)
-            self.label_extracode.config(text="test")
+            self.label_extracode.config(text=self.extra_code)
 
     def get_dir(self):
 
