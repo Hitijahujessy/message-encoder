@@ -8,7 +8,7 @@ import os
 
 class Main():
 
-    if decryption.get_USB_root():
+    if decryption.get_USB_root(folter="/encoding/"):
         dir = decryption.get_USB_root(folter="/encoding/")  # String to hold directory path, should lead to encoded-fileS USB
     else:
         print("No external drive found")
@@ -99,7 +99,7 @@ class Main():
             files2 = next(os.walk(path2))[2]  # file list of Sub directory
             for f2 in files2:  # list of files
                 # print(f2)
-                self.trv.insert(i, 'end', iid='sub'+str(f2i), values="-" + f2)
+                self.trv.insert(i, 'end', iid='sub'+str(f2i), values="" + f2)
                 f2i = f2i + 1
             i = i + 1
         for f in files:  # list of files

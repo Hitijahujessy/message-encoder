@@ -24,7 +24,7 @@ def run(file_name, keep_running=True):
 def decoder(image, file_name) -> bool:
     data, bartype, pos = QRSCAN(image)
 
-    if data is "":
+    if data == "":
         # draws a string on the capture frame displaying the contents
         cv2.putText(image, bartype, (0, 25),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
@@ -90,14 +90,14 @@ def _decrypt(key, data):
 def try_decryption(encr_file_path: str, key: str) -> list | None:
     return_list = []
     with open(encr_file_path, 'r', encoding="utf-8") as f:
-        for line in f.readlines():
-            msg = bytes(line, 'utf-8')
-            text = _decrypt(key, msg)
-            if (text is None):
-                return None
-            text = text.decode('utf-8')
-            text = ''.join(text.splitlines())
-            return_list.append(text)
+        line = f.read()
+        msg = bytes(line, 'utf-8')
+        text = _decrypt(key, msg)
+        if (text is None):
+            return None
+        text = text.decode('utf-8')
+        text = ''.join(text.splitlines())
+        return_list.append(text)
     return return_list
 
 
