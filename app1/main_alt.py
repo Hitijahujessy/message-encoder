@@ -61,7 +61,7 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
         a += 1
         try:
             dir_name = f'encoding_{a}/'
-            os.makedirs(dir_name)
+            os.makedirs(file_destination+dir_name)
             break
         except FileExistsError:
             pass
@@ -137,6 +137,7 @@ def save_text():
 
     # retrieve USB roots, destinations and how many previous tries have been done
     file_destination, key_destination, dirname = _get_USB_root()
+    print(file_destination, key_destination)
 
     # run encrypt
     run_encryption(src_dir=dir_name, key_destination=key_destination, file_destination=file_destination,
