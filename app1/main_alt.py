@@ -63,7 +63,7 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
         a += 1
         try:
             dir_name = f'encoding_{a}/'
-            os.makedirs(dir_name)
+            os.makedirs(file_destination+dir_name)
             break
         except FileExistsError:
             pass
