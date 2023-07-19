@@ -4,8 +4,8 @@ import shutil
 from string import ascii_uppercase
 
 from cryptography.fernet import Fernet
-global key_destination, file_destination
-key_destination, file_destination = None, None
+global key_destination, file_destination, name_list
+key_destination, file_destination, name_list = None, None, []
 
 def _get_USB_root():
     _file_trigger = False
@@ -20,20 +20,34 @@ def _get_USB_root():
                     # see how many previous tries are already on the usb
                 file_destination = file_path
                 _file_trigger = True
+                _remove_files(file_path)
                 continue
 
             # designate a key_usb
             if not _key_trigger:
                 key_destination = file_path
                 _key_trigger = True
+                _remove_files(file_path)
                 continue
     return file_destination, key_destination
+
+def _remove_files(path):
+    for items in os.listdir(path):
+        if not 'System' in items:
+            print(items)
+            try:
+                os.remove(path + items)
+            except PermissionError:
+                shutil.rmtree(path + items)
+
+
 
 def _get_coded_root(limit=['']):
     for drive in ascii_uppercase[:-24:-1]:
         file_path = f"{drive}:/"
         if file_path not in limit:
             if os.path.exists(file_path):
+                _remove_files(file_path)
                 return file_path
 
 def _encrypt(key, data):
@@ -41,15 +55,10 @@ def _encrypt(key, data):
     return f.encrypt(data)
 
 def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None, src_dir=None):
+    global name_list
     # set up base src
     def base_file(a): return f'file_{a}.txt'
     def code_file(a): return f'codefile_{a}.txt'
-    dir_name = '/encoding/'
-    try:
-        os.makedirs(file_destination + dir_name)
-    except FileExistsError:
-        pass
-    file_destination += dir_name
     if src_files is None:
         src_files = []
     key_dict = []
@@ -80,7 +89,7 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
             for text in dict:
                 f.write(text.decode('utf-8') + '\n')
         # move "codefile_#" into the <USBdir>
-        list.append(code_file(i + 1))
+        name_list.append(code_file(i + 1))
 
 
     # Get the codes from the <keydict>, decode it into utf-8 and add it to the "keys.txt" file
@@ -94,8 +103,8 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
         index += 1
         # move "keys.txt" to <USBdir>
         shutil.move(key, key_destination)
-
     shutil.move(src_dir, file_destination)
+
 
 count = 0
 window = tk.Tk()
@@ -109,7 +118,6 @@ Labels = [
     "text 2",
     "text 3",
 ]
-list = []
 
 def save_text():
     global key_destination, file_destination
@@ -135,15 +143,13 @@ def save_text():
     run_encryption(file_destination=file_destination, key_destination=key_destination, src_dir=dir_name)
 
 def save_to_usb():
-    global key_destination, file_destination
+    global key_destination, file_destination, name_list
     code_destination = _get_coded_root([key_destination, file_destination])
-    try:
-        os.makedirs(code_destination + 'encoding/')
-    except FileExistsError:
-        pass
-    code_destination += 'encoding/'
-    for items in list:
-        shutil.move(items, code_destination)
+    path = os.path.join(code_destination, 'encoding/')
+    os.mkdir(path)
+    for items in name_list:
+        shutil.move(items, path)
+    name_list = []
     
 for count, text in enumerate(Labels):
 
