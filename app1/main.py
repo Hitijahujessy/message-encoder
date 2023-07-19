@@ -1,8 +1,40 @@
 import tkinter as tk
 import os
 import shutil
+from string import ascii_uppercase
 
 from cryptography.fernet import Fernet
+global key_destination, file_destination
+key_destination, file_destination = None, None
+
+def _get_USB_root():
+    _file_trigger = False
+    _key_trigger = False
+
+    """Scans for drives D: through Z:"""
+    for drive in ascii_uppercase[:-24:-1]:
+        file_path = f"{drive}:/"
+        if os.path.exists(file_path):
+            # designate a file_usb
+            if not _file_trigger:
+                    # see how many previous tries are already on the usb
+                file_destination = file_path
+                _file_trigger = True
+                continue
+
+            # designate a key_usb
+            if not _key_trigger:
+                key_destination = file_path
+                _key_trigger = True
+                continue
+    return file_destination, key_destination
+
+def _get_coded_root(limit=['']):
+    for drive in ascii_uppercase[:-24:-1]:
+        file_path = f"{drive}:/"
+        if file_path not in limit:
+            if os.path.exists(file_path):
+                return file_path
 
 def _encrypt(key, data):
     f = Fernet(key)
@@ -25,17 +57,7 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
         for file in os.listdir(src_dir):
             if '.txt' in file:
                 src_files.append(src_dir + file)
-                """Why the break here, wouldnt that only lead to 1 file getting encoded? -Justin"""
     amount = len(src_files)
-
-    # remove all items from the <USBdir> (d:/)
-    for item in os.listdir(file_destination):
-        # DO NOT REMOVE SYSTEM VOLUME INFORMATION.
-        # its special ;(
-        if item == 'System Volume Information':
-            continue
-        os.remove(file_destination + item)
-
     # continue 3 times (main goal)
     for i in range(amount):
         # open "file_#" and dump all lines from said file into the <dumplist>
@@ -58,7 +80,8 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
             for text in dict:
                 f.write(text.decode('utf-8') + '\n')
         # move "codefile_#" into the <USBdir>
-        shutil.move(code_file(i + 1), file_destination)
+        list.append(code_file(i + 1))
+
 
     # Get the codes from the <keydict>, decode it into utf-8 and add it to the "keys.txt" file
     key_files = ["key1.txt", "key2.txt", "key3.txt"]
@@ -72,6 +95,8 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
         # move "keys.txt" to <USBdir>
         shutil.move(key, key_destination)
 
+    shutil.move(src_dir, file_destination)
+
 count = 0
 window = tk.Tk()
 window.title("Data Encrypter")
@@ -84,9 +109,10 @@ Labels = [
     "text 2",
     "text 3",
 ]
-
+list = []
 
 def save_text():
+    global key_destination, file_destination
     dir_name = 'start_files/'
     try:
         os.makedirs(dir_name)
@@ -105,8 +131,20 @@ def save_text():
     text_file_3.write(text_3.get(1.0, tk.END))
     text_file_3.close()
 
-    run_encryption(src_dir=dir_name)
+    file_destination, key_destination = _get_USB_root()
+    run_encryption(file_destination=file_destination, key_destination=key_destination, src_dir=dir_name)
 
+def save_to_usb():
+    global key_destination, file_destination
+    code_destination = _get_coded_root([key_destination, file_destination])
+    try:
+        os.makedirs(code_destination + 'encoding/')
+    except FileExistsError:
+        pass
+    code_destination += 'encoding/'
+    for items in list:
+        shutil.move(items, code_destination)
+    
 for count, text in enumerate(Labels):
 
     label = tk.Label(master=frm_form, text=text)
@@ -126,5 +164,7 @@ frm_buttons.pack(fill=tk.X, ipadx=5, ipady=5)
 
 submit_button = tk.Button(master=frm_buttons, text="Submit", command=save_text)
 submit_button.pack(side=tk.RIGHT, padx=10, ipadx=10)
+save_to_usb_button = tk.Button(master=frm_buttons, text='save to usb', command=save_to_usb)
+save_to_usb_button.pack(side=tk.LEFT, padx =10, ipadx=10)
 
 window.mainloop()

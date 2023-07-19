@@ -7,8 +7,6 @@ from cryptography.fernet import Fernet
 
 
 def _get_USB_root():
-    file_destination = None
-    key_destination = None
     _file_trigger = False
     _key_trigger = False
     dirname_addon = 1
@@ -32,18 +30,24 @@ def _get_USB_root():
                 key_destination = file_path
                 _key_trigger = True
                 continue
+    return file_destination, key_destination, dirname_addon
 
-            code_destination = file_path
-    return file_destination, key_destination, code_destination, dirname_addon
+def _get_coded_root(limit=['']):
+    for drive in ascii_uppercase[:-24:-1]:
+        file_path = f"{drive}:/"
+        if file_path not in limit:
+            if os.path.exists(file_path):
+                return code_destination
 
+        
 
 def _encrypt(key, data):
     f = Fernet(key)
     return f.encrypt(data)
 
 
-def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None, src_dir=None,
-                   dirname='', code_destination=''):
+def run_encryption(src_files=None, src_dir=None):
+    global file_destination, key_destination,  dirname
     # set up base src
     def base_file(a):
         return f'file_{a}.txt'
@@ -57,19 +61,6 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
     # setup link between aplhabet and numbers, for naming purposes
     charstr = 'abcdefghijklmnopqrstuvwqyxABCDEFGHIJKLMNOPQRSTUVWXYZ'
     char_list = list(charstr)
-    dir_name = 'encoding_0/'
-    a = 0
-    while True:
-        a += 1
-        try:
-            dir_name = f'encoding_{a}/'
-            os.makedirs(file_destination+dir_name)
-            break
-        except FileExistsError:
-            pass
-    
-
-    file_destination += dir_name
     if src_files is None:
         src_files = []
     key_dict = []
@@ -101,8 +92,7 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
             for text in dict:
                 f.write(text.decode('utf-8') + '\n')
         # move "codefile_#" into the <USBdir>
-        shutil.move(code_file(i + 1), code_destination)
-
+        file_names.append(code_file(i + 1))
     # Get the codes from the <keydict>, decode it into utf-8 and add it to the "keys.txt" file
 
     for num, key in enumerate(key_dict):
@@ -114,6 +104,7 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
     shutil.move(src_dir, file_destination)
 
 def save_text():
+    global file_destination, key_destination, code_destination, dirname
     # If all text fields are empty, return
     if all(texts[num].get(1.0, tk.END).strip() == '' for num in range(len(name))):
         return
@@ -129,7 +120,6 @@ def save_text():
         except FileExistsError:
             pass
 
-    
     for num in range(len(name)):
         # as long as file isnt empty, create new file with as title name[num].input
         if not texts[num].get(1.0, tk.END).strip() == '':
@@ -138,17 +128,37 @@ def save_text():
             file.close()
 
     # retrieve USB roots, destinations and how many previous tries have been done
-    file_destination, key_destination, code_destination, dirname = _get_USB_root()
-    if not file_destination or not key_destination or not code_destination:
-        print('please insert 3 usbs')
-        return
-
+    if not file_destination and not key_destination:
+        file_destination, key_destination, dirname = _get_USB_root
+        if not file_destination or not key_destination:
+            print('please insert atleast 2 usbs')
+            return
     # run encrypt
-    run_encryption(src_dir=dir_name, key_destination=key_destination, file_destination=file_destination,
-                   dirname=dirname, code_destination=code_destination)
+    run_encryption(src_dir=dir_name)
+
+def save_to_usb():
+    global file_destination, key_destination, code_destination, dirname
+    limit = [file_destination, key_destination]
+    code_destination = _get_coded_root(limit)
+    dir_name = 'encoding_0/'
+    a = 0
+    while True:
+        a += 1
+        try:
+            dir_name = f'encoding_{a}/'
+            dirname = a
+            os.makedirs(code_destination+dir_name)
+            break
+        except FileExistsError:
+            pass
+    code_destination += dir_name
+    for name in file_names:
+        shutil.move(name, code_destination)
 
 
 if __name__ == '__main__':
+    global file_destination, key_destination, code_destination, dirname
+    file_destination, key_destination, code_destination, dirname = None, None, None, None
     count = 0
     window = tk.Tk()
     window.title("Data Encrypter")
@@ -158,6 +168,7 @@ if __name__ == '__main__':
 
     name = []
     texts = []
+    file_names = []
 
     text_amount = 3
 
@@ -178,5 +189,7 @@ if __name__ == '__main__':
 
     submit_button = tk.Button(master=frm_buttons, text="Submit", command=save_text)
     submit_button.pack(side=tk.RIGHT, padx=10, ipadx=10)
+    save_to_usb_button = tk.Button(master=frm_buttons, text='save to usb', command=save_to_usb)
+    save_to_usb_button.pack(side=tk.LEFT, padx =10, ipadx=10)
 
     window.mainloop()
