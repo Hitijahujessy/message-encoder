@@ -49,7 +49,7 @@ def decoder(image, file_name) -> bool:
         decrypted_text = try_decryption(get_USB_root(
             folter="encoding/") + file_name, str(key))
         if decrypted_text:
-            create_decrypted_file(text=decrypted_text)
+            create_decrypted_file_with_original_title(text=decrypted_text)
             # Stop running the capture frame when the file has been decrypted
             return False, decrypted_text
     except FileExistsError as error:
