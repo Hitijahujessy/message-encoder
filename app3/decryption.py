@@ -9,16 +9,16 @@ from pyzbar.pyzbar import decode
 
 def run(file_name, keep_running=True):
     cap = cv2.VideoCapture(0)
-    data = None
+    decrypted_text = None
     while keep_running:
         ret, frame = cap.read()
-        keep_running, data = decoder(frame, file_name)
+        keep_running, decrypted_text, extra_code = decoder(frame, file_name)
         cv2.imshow('Image', frame)
         code = cv2.waitKey(10)
         if code == ord('q'):
             break
     cv2.destroyAllWindows()
-    return data
+    return decrypted_text, extra_code
 
 
 def decoder(image, file_name) -> bool:
@@ -28,12 +28,12 @@ def decoder(image, file_name) -> bool:
         # draws a string on the capture frame displaying the contents
         cv2.putText(image, bartype, (0, 25),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-        return True, None
+        return True, None, None
     elif data[-6] != "=" or len(data) != 49:
         bartype = "Invalid QR code"
         cv2.putText(image, bartype, pos,
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-        return True, None
+        return True, None, None
 
     # Seperate the key and code from the qr data
     key = data[:-5]
@@ -51,10 +51,10 @@ def decoder(image, file_name) -> bool:
         if decrypted_text:
             create_decrypted_file_with_original_title(text=decrypted_text)
             # Stop running the capture frame when the file has been decrypted
-            return False, decrypted_text
+            return False, decrypted_text, extra_code
     except FileExistsError as error:
         print(error)
-    return True, None
+    return True, None, None
 
 
 def QRSCAN(img):
