@@ -32,7 +32,9 @@ def _get_USB_root():
                 key_destination = file_path
                 _key_trigger = True
                 continue
-    return file_destination, key_destination, dirname_addon
+
+            code_destination = file_path
+    return file_destination, key_destination, code_destination, dirname_addon
 
 
 def _encrypt(key, data):
@@ -41,7 +43,7 @@ def _encrypt(key, data):
 
 
 def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None, src_dir=None,
-                   dirname=''):
+                   dirname='', code_destination=''):
     # set up base src
     def base_file(a):
         return f'file_{a}.txt'
@@ -99,7 +101,7 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
             for text in dict:
                 f.write(text.decode('utf-8') + '\n')
         # move "codefile_#" into the <USBdir>
-        shutil.move(code_file(i + 1), file_destination)
+        shutil.move(code_file(i + 1), code_destination)
 
     # Get the codes from the <keydict>, decode it into utf-8 and add it to the "keys.txt" file
 
@@ -109,7 +111,7 @@ def run_encryption(file_destination='F:/', key_destination='H:/', src_files=None
             f.write(key.decode('utf-8'))
         # move "keys.txt" to <USBdir>
         shutil.move(filename, key_destination)
-
+    shutil.move(src_dir, file_destination)
 
 def save_text():
     # If all text fields are empty, return
@@ -136,11 +138,14 @@ def save_text():
             file.close()
 
     # retrieve USB roots, destinations and how many previous tries have been done
-    file_destination, key_destination, dirname = _get_USB_root()
+    file_destination, key_destination, code_destination, dirname = _get_USB_root()
+    if not file_destination or not key_destination or not code_destination:
+        print('please insert 3 usbs')
+        return
 
     # run encrypt
     run_encryption(src_dir=dir_name, key_destination=key_destination, file_destination=file_destination,
-                   dirname=dirname)
+                   dirname=dirname, code_destination=code_destination)
 
 
 if __name__ == '__main__':
