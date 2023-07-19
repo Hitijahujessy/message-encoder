@@ -140,6 +140,9 @@ def save_text():
     text_file_3.close()
 
     file_destination, key_destination = _get_USB_root()
+    if (file_destination == None or key_destination is None):
+        print("No suitable drives found")
+        exit()
     run_encryption(file_destination=file_destination, key_destination=key_destination, src_dir=dir_name)
 
 def save_to_usb():

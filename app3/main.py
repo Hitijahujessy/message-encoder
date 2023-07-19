@@ -51,7 +51,7 @@ class Main():
         # Create the labels inside the textboxes
         # self.label_left = tk.Label(self.frame_left, width=50, height=20)
         # self.label_left.pack()
-        self.label_extracode =  tk.Label(self.frame_right, width=50, height=20, text="test", wraplength=300, justify='left')
+        self.label_extracode =  tk.Label(self.frame_right, width=50, height=20, text="", wraplength=300, justify='left')
         self.label_extracode.pack()
         self.label_right = tk.Label(self.frame_right, width=50, height=20, text=self.decrypted_text, wraplength=300, justify='left')
         self.label_right.pack()
