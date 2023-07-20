@@ -88,17 +88,17 @@ def _decrypt(key, data):
 
 
 def try_decryption(encr_file_path: str, key: str) -> list | None:
-    return_list = []
+    return_string = ''
     with open(encr_file_path, 'r', encoding="utf-8") as f:
-        line = f.read()
-        msg = bytes(line, 'utf-8')
-        text = _decrypt(key, msg)
-        if (text is None):
-            return None
-        text = text.decode('utf-8')
-        text = ''.join(text.splitlines())
-        return_list.append(text)
-    return return_list
+        for line in f.readlines():
+            msg = bytes(line, 'utf-8')
+            text = _decrypt(key, msg)
+            if (text is None):
+                return None
+            text = text.decode('utf-8')
+            text = ''.join(text.splitlines())
+            return_string += text + '\n'
+    return return_string
 
 
 def create_decrypted_file(decr_file_path=os.path.dirname(__file__)+"/decrypts/", text=[""]):
